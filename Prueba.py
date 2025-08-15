@@ -1,4 +1,4 @@
-from rateCodeDecode import rateCodeDecode
+from CodeDecode import rateCodeDecode, latencyCodeDecode
 import numpy as np
 import torch
 
@@ -20,3 +20,14 @@ code.save_decodedData()
 code.plot_signal(X_ent, codificada, deco, 0)
 
 code.metrics(X_ent, deco)
+
+lat = latencyCodeDecode(32, 0.0, 1.0)
+
+codificada = lat.code(datos_Entrenamiento_torch)
+lat.save_codedData_binary()
+
+deco = lat.decode(codificada)
+lat.save_decodedData()
+lat.plot_signal(X_ent, codificada, deco, 0)
+
+lat.metrics(X_ent, deco)
