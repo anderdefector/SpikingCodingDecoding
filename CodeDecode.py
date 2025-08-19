@@ -72,7 +72,7 @@ class rateCodeDecode:
         if name == None:
             np.savetxt("RateCodedDataBinary.txt", numpy_data, fmt='%d')
         else:
-            np.savetxt(name, numpy_data)
+            np.savetxt(name, numpy_data, fmt='%d')
     
     def metrics(self, original, decoded):
         mae = mean_absolute_error(original, decoded)
@@ -110,6 +110,7 @@ class rateCodeDecode:
             plt.savefig('SignalsRateDecoding.png', bbox_inches='tight')
         else:
             plt.savefig(name, bbox_inches='tight')
+        plt.close()
 
 class latencyCodeDecode:
 
@@ -131,13 +132,13 @@ class latencyCodeDecode:
         self.coded_Data = torch.zeros(samples, feature_spikes)
         for i in range(samples):
             for j in range(features):
-                
+                spike_data = torch.zeros(self.spikes)
                 spike_position = int(round(x[i, j].item() / self.m, 0 ))
                 if spike_position == 0:
                     t = self.spikes - 1
                 else:
                     t = self.spikes - spike_position
-                self.coded_Data[i, t] = 1.0
+                spike_data[t] = 1.0
                 self.coded_Data[i, (j*self.spikes):((j+1)*self.spikes)] = spike_data
         return self.coded_Data
 
@@ -216,6 +217,7 @@ class latencyCodeDecode:
             for j in range(self.spikes):
                 if data_encoded[i,j] == 1:
                     axs[1].scatter(i, j, s=2, color='black')
+                    break
         axs[1].set_xlabel("Samples")
         axs[1].set_ylabel("Neurons")
         axs[0].set_ylabel("Normalized value")
@@ -223,3 +225,4 @@ class latencyCodeDecode:
             plt.savefig('SignalsLatencyDecoding.png', bbox_inches='tight')
         else:
             plt.savefig(name, bbox_inches='tight')
+        plt.close()
