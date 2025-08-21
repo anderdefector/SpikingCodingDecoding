@@ -163,15 +163,20 @@ class latencyCodeDecode:
         for i in range(samples):
             for j in range(features):
                 spike_data = s[i, (j*self.spikes):((j+1)*self.spikes)]
+                sumatory = 0.0
+                #print("Spike data")
+                #print(spike_data)
                 for k in range(self.spikes):
                     if spike_data[k] == 1.0:
+                        #print("Pulsos")
                         t = self.spikes - k
-                        self.decoded_Data[i, j] =  t * self.m * spike_data[k]
-                        break
-                    else:
-                        self.decoded_Data[i, j] = 0.0 * spike_data[k]
-
-               
+                        sumatory = sumatory + ( t * self.m * spike_data[k])
+                        
+                
+                if sumatory == 0.0:
+                    self.decoded_Data[i, j] = 0* spike_data[0]
+                else:
+                    self.decoded_Data[i, j] = sumatory
         return self.decoded_Data
 
     def save_decodedData(self,name=None):
