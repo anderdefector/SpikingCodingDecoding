@@ -260,3 +260,38 @@ class latencyCodeDecode:
         else:
             plt.savefig(name, bbox_inches='tight')
         plt.close()
+
+    def plot_signal_spikescount(self, original, encoded, decoded, signal, name=None):
+        input_shape = len(original.shape)
+        if input_shape == 1:
+            original = torch.reshape(original,(original.shape[0],1))
+            decoded = torch.reshape(decoded,(decoded.shape[0],1))
+        elif input_shape == 2:
+            pass
+        data_original = original[:,signal]
+        data_encoded = encoded[:,signal*self.spikes:((signal+1)*self.spikes)]
+        data_decoded = decoded[:,signal]
+        samples = encoded.shape[0]
+
+        fig, axs = plt.subplots(3, figsize=(12.8, 7.2))
+        axs[0].plot(data_original,color='red', label='Original')
+        axs[0].plot(data_decoded,'--', color='blue', label='Decoded')
+        axs[0].legend()
+        for i in range(samples):
+            number = torch.sum(data_encoded[i,:])
+            axs[2].scatter(i, number, s=1, color='black')
+            for j in range(self.spikes):
+                if data_encoded[i,j] == 1:
+                    axs[1].scatter(i, j, s=2, color='black')
+                    break
+
+        
+        axs[2].set_ylabel("Number of spikes")
+        axs[2].set_xlabel("Samples")
+        axs[1].set_ylabel("Neurons")
+        axs[0].set_ylabel("Normalized value")
+        if name == None:
+            plt.savefig('SignalsLatencyDecoding.png', bbox_inches='tight')
+        else:
+            plt.savefig(name, bbox_inches='tight')
+        plt.close()
