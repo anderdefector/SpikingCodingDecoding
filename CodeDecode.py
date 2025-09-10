@@ -15,7 +15,7 @@ class rateCodeDecode:
         self.seed = seed
         self.values_interpolation()
 
-    def code(self, x):
+    def code_snntorch(self, x):
         input_shape = len(x.shape)
         if input_shape == 1:
             x = torch.reshape(x,(x.shape[0],1))
@@ -31,13 +31,36 @@ class rateCodeDecode:
                 spike_data = spikegen.rate(x[i, j], num_steps=self.spikes)
                 self.coded_Data[i, (j*self.spikes):((j+1)*self.spikes)] = spike_data
         return self.coded_Data
+    def code(self, x):
+        input_shape = len(x.shape)
+        if input_shape == 1:
+            x = torch.reshape(x,(x.shape[0],1))
+        elif input_shape == 2:
+            pass
+        samples = x.shape[0]
+        features = x.shape[1]
+        feature_spikes = features * self.spikes
+        self.coded_Data = torch.ones(samples, feature_spikes)
+        for i in range(samples):
+            for j in range(features):
+                spike_position = int(round(x[i, j].item() / self.m, 0 ))
+                if spike_position == 0:
+                    t = torch.zeros(self.spikes)
+                    self.coded_Data[i, (j*self.spikes):((j+1)*self.spikes)] = t
+                else:
+                    t = torch.zeros(self.spikes-spike_position)
+                    tmp = self.coded_Data[i, (j*self.spikes):((j+1)*self.spikes)]
+                    tmp[spike_position:self.spikes] = t
+                    self.coded_Data[i, (j*self.spikes):((j+1)*self.spikes)] = tmp
+        return self.coded_Data
+
 
     def values_interpolation(self):
         self.values = np.zeros((self.spikes))
-        m = (self.max_value - self.min_value)/( self.spikes )
+        self.m = (self.max_value - self.min_value)/( self.spikes )
         for i in range(self.spikes+2):
             if i > 0 and i < self.spikes +1:
-                self.values[i - 1] = (m * i) + self.min_value
+                self.values[i - 1] = (self.m * i) + self.min_value
         return self.values
 
     def decode(self, s):
