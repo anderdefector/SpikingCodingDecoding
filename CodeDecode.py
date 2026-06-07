@@ -121,18 +121,70 @@ class rateCodeDecode:
         fig, axs = plt.subplots(2, figsize=(12.8, 7.2))
         axs[0].plot(data_original,color='red', label='Original')
         axs[0].plot(data_decoded,'--', color='blue', label='Decoded')
-        axs[0].legend()
+        axs[0].legend(fontsize=12)
+        first_spike = True
         for i in range(samples):
             for j in range(self.spikes):
                 if data_encoded[i,j] == 1:
-                    axs[1].scatter(i, j, s=2, color='black')
-        axs[1].set_xlabel("Samples")
-        axs[1].set_ylabel("Neurons")
-        axs[0].set_ylabel("Normalized value")
+                    label = 'Encoded' if first_spike else None
+                    axs[1].scatter(i, j, s=2, color='black', label=label)
+                    first_spike = False
+        axs[1].set_xlabel("Samples", fontsize=14)
+        axs[1].set_ylabel("LIF Neurons", fontsize=14)
+        axs[1].set_ylim(0,self.spikes-1)
+        axs[0].set_ylabel("Normalized value", fontsize=14)
+        axs[0].set_ylim(self.min_value,self.max_value)
+        axs[1].legend(fontsize=12)
         if name == None:
             plt.savefig('SignalsRateDecoding.png', bbox_inches='tight')
         else:
             plt.savefig(name, bbox_inches='tight')
+        plt.close()
+
+    def plot_signal_optimized(self, original, encoded, decoded, signal, name=None):
+        if len(original.shape) == 1:
+            original = original.unsqueeze(1)
+            decoded = decoded.unsqueeze(1)
+
+        data_original = original[:, signal]
+        data_encoded = encoded[:, signal * self.spikes:(signal + 1) * self.spikes]
+        data_decoded = decoded[:, signal]
+
+        samples = encoded.shape[0]
+
+        fig, axs = plt.subplots(2, figsize=(12.8, 7.2))
+
+        # Original signal
+        axs[0].plot(data_original, color='red', label='Original')
+            
+        # Decoded signal
+        axs[0].plot(data_decoded, '--', color='blue', label='Decoded')
+            
+        axs[0].legend(fontsize=12, bbox_to_anchor=(1.01, 1), loc="upper left")
+
+        # Encoded LIF neurons
+        first_spike = True
+        for i in range(samples):
+            for j in range(self.spikes):
+                if data_encoded[i, j] == 1:
+                    label = 'Encoded' if first_spike else None
+                    axs[1].scatter(i, j, s=2, color='black', label=label)
+                    first_spike = False
+
+        axs[1].set_xlabel("Samples", fontsize=14)
+        axs[1].set_ylabel("LIF Neurons", fontsize=14)
+        axs[1].set_ylim(-0.5, ((self.spikes-1) + 0.5))
+
+        axs[0].set_ylabel("Normalized value", fontsize=14)
+        axs[0].set_ylim(self.min_value, self.max_value)
+
+        axs[1].legend(fontsize=12, bbox_to_anchor=(1.01, 1), loc="upper left")
+
+        if name is None:
+            plt.savefig('SignalsRateDecoding.png', bbox_inches='tight')
+        else:
+            plt.savefig(name, bbox_inches='tight')
+
         plt.close()
 
 class latencyCodeDecode:
@@ -269,19 +321,73 @@ class latencyCodeDecode:
         fig, axs = plt.subplots(2, figsize=(12.8, 7.2))
         axs[0].plot(data_original,color='red', label='Original')
         axs[0].plot(data_decoded,'--', color='blue', label='Decoded')
-        axs[0].legend()
+        axs[0].legend(fontsize=12)
+        first_spike = True
         for i in range(samples):
             for j in range(self.spikes):
                 if data_encoded[i,j] == 1:
-                    axs[1].scatter(i, j, s=2, color='black')
+                    label = 'Encoded' if first_spike else None
+                    axs[1].scatter(i, j, s=2, color='black', label=label)
+                    first_spike = False
+                    #print(label)
                     break
-        axs[1].set_xlabel("Samples")
-        axs[1].set_ylabel("Neurons")
-        axs[0].set_ylabel("Normalized value")
+        axs[1].set_xlabel("Samples", fontsize=14)
+        axs[1].set_ylabel("LIF Neurons", fontsize=14)
+        axs[1].set_ylim(-0.5, (self.spikes + 0.5))
+        axs[1].legend(fontsize=12)
+        axs[0].set_ylim(self.min_value,self.max_value)
+        axs[0].set_ylabel("Normalized value", fontsize=14)
         if name == None:
             plt.savefig('SignalsLatencyDecoding.png', bbox_inches='tight')
         else:
             plt.savefig(name, bbox_inches='tight')
+        plt.close()
+
+
+    def plot_signal_optimized(self, original, encoded, decoded, signal, name=None):
+        if len(original.shape) == 1:
+            original = original.unsqueeze(1)
+            decoded = decoded.unsqueeze(1)
+
+        data_original = original[:, signal]
+        data_encoded = encoded[:, signal * self.spikes:(signal + 1) * self.spikes]
+        data_decoded = decoded[:, signal]
+
+        samples = encoded.shape[0]
+
+        fig, axs = plt.subplots(2, figsize=(12.8, 7.2))
+
+        # Original signal
+        axs[0].plot(data_original, color='red', label='Original')
+        
+        # Decoded signal
+        axs[0].plot(data_decoded, '--', color='blue', label='Decoded')
+        
+        axs[0].legend(fontsize=12, bbox_to_anchor=(1.01, 1), loc="upper left")
+
+        # Encoded LIF neurons
+        first_spike = True
+        for i in range(samples):
+            spike_indices = torch.where(data_encoded[i] == 1)[0]
+            if spike_indices.size(0) > 0:
+                j = spike_indices[0]
+                label = 'Encoded' if first_spike else None
+                axs[1].scatter(i, j, s=2, color='black', label=label)
+                first_spike = False
+
+        axs[1].set_xlabel("Samples", fontsize=14)
+        axs[1].set_ylabel("LIF Neurons", fontsize=14)
+        axs[1].set_ylim(-0.5, ((self.spikes - 1) + 0.5))
+        axs[1].legend(fontsize=12, bbox_to_anchor=(1.01, 1), loc="upper left")
+        axs[0].set_ylabel("Normalized value", fontsize=14)
+        axs[0].set_ylim(self.min_value, self.max_value)
+        #axs[1].set_ylim(-0.5, self.max_valu)
+        
+        if name is None:
+            plt.savefig('SignalsLatencyDecoding.png', bbox_inches='tight')
+        else:
+            plt.savefig(name, bbox_inches='tight')
+
         plt.close()
 
     def plot_signal_spikescount(self, original, encoded, decoded, signal, name=None):
@@ -299,7 +405,7 @@ class latencyCodeDecode:
         fig, axs = plt.subplots(3, figsize=(12.8, 7.2))
         axs[0].plot(data_original,color='red', label='Original')
         axs[0].plot(data_decoded,'--', color='blue', label='Decoded')
-        axs[0].legend()
+        axs[0].legend(fontsize=14,  loc='outside right upper')
         for i in range(samples):
             number = torch.sum(data_encoded[i,:])
             axs[2].scatter(i, number, s=1, color='black')
@@ -309,10 +415,10 @@ class latencyCodeDecode:
                     break
 
         
-        axs[2].set_ylabel("Number of spikes")
-        axs[2].set_xlabel("Samples")
-        axs[1].set_ylabel("Neurons")
-        axs[0].set_ylabel("Normalized value")
+        axs[2].set_ylabel("Number of spikes", fontsize=14)
+        axs[2].set_xlabel("Samples", fontsize=14)
+        axs[1].set_ylabel("LIF Neurons", fontsize=14)
+        axs[0].set_ylabel("Normalized value", fontsize=14)
         if name == None:
             plt.savefig('SignalsLatencyDecoding.png', bbox_inches='tight')
         else:
